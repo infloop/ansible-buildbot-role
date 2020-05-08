@@ -1,0 +1,12 @@
+---
+buildbot_role_mode: "deployment" # "reconfiguration"
+buildbot_organization: "buildbot"
+buildbot_main_user: "buildbot"
+buildbot_app_name: "buildbot"
+buildbot_docker_network_name: "buildbot_docker_network"
+buildbot_docker_restart_policy: "always"
+buildbot_port: "8081"
+buildbot_worker_port: "9989"
+buildbot_web_url: "http://buildbot.local:{{ buildbot_port }}/"
+buildbot_master_cfg_file_path: "../files/master.cfg"
+buildbot_master_extra_files: []

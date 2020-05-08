@@ -1,0 +1,92 @@
+---
+- name: Create `{{ buildbot_main_user }}` user and add it to docker group
+  user:
+    name: "{{ buildbot_main_user }}"
+    shell: /bin/bash
+    groups: "docker"
+
+- name: Create `logs` folder
+  file: path={{ item.path }} state=directory owner={{ buildbot_main_user }}
+  with_items:
+  - { path: "{{ logs_folder }}" }
+
+- name: Change owner for `logs` folder
+  command: chown -R {{ buildbot_main_user }}:{{ buildbot_main_user }} {{ logs_folder }}
+
+- name: Create needed directories
+  file: path={{ item.path }} state=directory owner={{ buildbot_main_user }}
+  with_items:
+  - { path: "{{ main_folder }}" }
+  - { path: "{{ main_folder }}/volumes" }
+  - { path: "{{ main_folder }}/volumes/buildbot-master" }
+  - { path: "{{ main_folder }}/volumes/buildbot-worker" }
+  - { path: "{{ main_folder }}/volumes/patches/buildbot/steps/source" }
+  - { path: "{{ main_folder }}/volumes/patches/buildbot/secrets/providers" }
+
+- name: Upload needed files
+  copy: src={{ item.src }} dest={{ item.dest }}
+    owner=root group=root mode=0444
+  with_items:
+  - { src: "../files/.dockerignore",                                dest: "{{ main_folder }}/.dockerignore" }
+  - { src: "../files/db.env",                                       dest: "{{ main_folder }}/db.env" }
+  - { src: "{{ buildbot_master_cfg_file_path }}",                   dest: "{{ main_folder }}/volumes/buildbot-master/master.cfg" }
+  - { src: "../files/slack.py",                                     dest: "{{ main_folder }}/volumes/buildbot-master/slack.py" }
+  - { src: "../files/patches/buildbot/steps/source/p4.py",          dest: "{{ main_folder }}/volumes/patches/buildbot/steps/source/p4.py" }
+  - { src: "../files/patches/buildbot/secrets/providers/vault.py",  dest: "{{ main_folder }}/volumes/patches/buildbot/secrets/providers/vault.py" }
+
+- name: Upload master extra files
+  copy: src="{{ item.path }}{{ item.file }}" dest="{{ main_folder }}/volumes/buildbot-master/{{ item.file }}"
+    owner=root group=root mode=0444
+  with_items:
+  - "{{ buildbot_master_extra_files }}"
+
+- name: Create 'docker-compose.yml' file from template
+  template: src={{ item.src }} dest={{ item.dest }}
+    owner=root group=root mode=0444
+  with_items:
+  - { src: "../files/docker-compose.yml.jinja",             dest: "{{ main_folder }}/docker-compose.yml" }
+
+- name: Open buildbot firewall port
+  firewalld:
+    port: '{{ item.port }}'
+    immediate: yes
+    permanent: yes
+    state: enabled
+  with_items:
+  - { port: "{{ buildbot_port }}/tcp" }
+  - { port: "{{ buildbot_worker_port }}/tcp" }
+
+- name: Open http firewall port
+  firewalld:
+    service: '{{ item.service }}'
+    zone: '{{ item.zone }}'
+    immediate: yes # this is the firewall-cmd --reload
+    permanent: '{{ item.permanent }}'
+    state: enabled
+  with_items:
+  - { service: 'http', zone: 'public', permanent: 'yes'  }
+  - { service: 'https', zone: 'public', permanent: 'yes'  }
+
+- name: Set httpd_can_network_connect flag on and keep it persistent across reboots
+  seboolean:
+    name: httpd_can_network_connect
+    state: yes
+    persistent: yes
+
+- docker_compose:
+    project_src: "{{ main_folder }}"
+    state: present
+    build: no
+    restarted: false
+
+- docker_compose:
+    project_src: "{{ main_folder }}"
+    state: present
+    build: yes
+    services:
+    - buildbot
+    - db
+    - worker
+    restarted: true
+
+

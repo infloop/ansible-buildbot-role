@@ -1,0 +1,3 @@
+---
+main_folder: "/opt/{{ buildbot_organization }}/{{ buildbot_app_name }}"
+logs_folder: "/var/log/{{ buildbot_app_name }}"

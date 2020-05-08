@@ -1,0 +1,7 @@
+---
+galaxy_info:
+  author: Infloop
+  description: Role for Build bot deployment
+  license: Private
+  min_ansible_version: 2.4
+dependencies: []

@@ -1,0 +1,62 @@
+version: '3.5'
+services:
+
+  buildbot:
+    image: buildbot/buildbot-master:v2.5.0
+    restart: {{ buildbot_docker_restart_policy }}
+    env_file:
+      - db.env
+    environment:
+      - BUILDBOT_CONFIG_DIR=config
+      - BUILDBOT_WORKER_PORT=9989
+      - BUILDBOT_WEB_URL={{ buildbot_web_url }}
+      - BUILDBOT_WEB_PORT=tcp:port=8010
+    volumes:
+      - ./volumes/buildbot-master/:/var/lib/buildbot
+      - ./volumes/patches/buildbot/steps/source/p4.py:/usr/lib/python3.6/site-packages/buildbot/steps/source/p4.py:ro
+      - ./volumes/patches/buildbot/secrets/providers/vault.py:/usr/lib/python3.6/site-packages/buildbot/secrets/providers/vault.py:ro
+      - /etc/localtime:/etc/localtime:ro
+    links:
+      - db
+    depends_on:
+      - db
+    networks:
+      - {{ buildbot_docker_network_name }}
+    ports:
+      - "0.0.0.0:{{ buildbot_port }}:8010"
+      - "0.0.0.0:{{ buildbot_worker_port }}:9989"
+
+  db:
+    image: "postgres:9.4"
+    restart: {{ buildbot_docker_restart_policy }}
+    volumes:
+      - ./volumes/buildbot-db/data/:/var/lib/postgresql/data/
+    env_file:
+      - db.env
+    expose:
+      - 5432
+    networks:
+      - {{ buildbot_docker_network_name }}
+
+  worker:
+    image: "buildbot/buildbot-worker:v2.1.0"
+    restart: {{ buildbot_docker_restart_policy }}
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+    environment:
+      BUILDMASTER: buildbot
+      BUILDMASTER_PORT: 9989
+      WORKERNAME: local_worker
+      WORKERPASS: pass
+      WORKER_ENVIRONMENT_BLACKLIST: DOCKER_BUILDBOT* BUILDBOT_ENV_* BUILDBOT_1* WORKER_ENVIRONMENT_BLACKLIST
+    links:
+      - buildbot
+    networks:
+      - {{ buildbot_docker_network_name }}
+
+networks:
+  {{ buildbot_docker_network_name }}:
+    name: {{ buildbot_docker_network_name }}
+    ipam:
+      config:
+      - subnet: 112.160.1.0/28

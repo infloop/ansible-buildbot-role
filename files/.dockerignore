@@ -1,0 +1,43 @@
+# git
+.git
+.gitignore
+.editorconfig
+
+
+# docker
+Dockerfile
+docker-compose.yml
+docker-compose.dev.yml
+docker-compose.prod.yml
+docker-compose.registry.yml
+
+
+# application
+.npmignore
+.publishrc
+npm_debug.log
+node_modules
+/app/
+README.md
+tsconfig.json
+tslint.json
+typings.json
+Vagrantfile
+
+
+# Various stuff
+/vagrant/
+/docs/
+
+
+# Development
+packages
+volumes
+
+# Production
+packages
+volumes
+
+# Extra
+app.tar.gz
+node_modules

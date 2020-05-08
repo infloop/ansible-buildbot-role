@@ -1,0 +1,11 @@
+---
+- docker_compose:
+    project_src: "{{ main_folder }}"
+    state: present
+    build: yes
+    services:
+    - buildbot
+    - worker
+    restarted: true
+
+
