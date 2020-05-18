@@ -3,6 +3,7 @@ services:
 
   buildbot:
     image: buildbot/buildbot-master:v2.5.0
+    container_name: buildbot-master
     restart: {{ buildbot_docker_restart_policy }}
     env_file:
       - db.env
@@ -23,11 +24,12 @@ services:
     networks:
       - {{ buildbot_docker_network_name }}
     ports:
-      - "0.0.0.0:{{ buildbot_port }}:8010"
+      - "0.0.0.0:{{ buildbot_master_port }}:8010"
       - "0.0.0.0:{{ buildbot_worker_port }}:9989"
 
   db:
     image: "postgres:9.4"
+    container_name: buildbot-db
     restart: {{ buildbot_docker_restart_policy }}
     volumes:
       - ./volumes/buildbot-db/data/:/var/lib/postgresql/data/
@@ -40,14 +42,15 @@ services:
 
   worker:
     image: "buildbot/buildbot-worker:v2.1.0"
+    container_name: buildbot-worker
     restart: {{ buildbot_docker_restart_policy }}
     volumes:
       - /etc/localtime:/etc/localtime:ro
     environment:
       BUILDMASTER: buildbot
       BUILDMASTER_PORT: 9989
-      WORKERNAME: local_worker
-      WORKERPASS: pass
+      WORKERNAME: {{ buildbot_worker_name }}
+      WORKERPASS: {{ buildbot_worker_password }}
       WORKER_ENVIRONMENT_BLACKLIST: DOCKER_BUILDBOT* BUILDBOT_ENV_* BUILDBOT_1* WORKER_ENVIRONMENT_BLACKLIST
     links:
       - buildbot
@@ -59,4 +62,4 @@ networks:
     name: {{ buildbot_docker_network_name }}
     ipam:
       config:
-      - subnet: 112.160.1.0/28
+      - subnet: {{ buildbot_docker_subnet }}

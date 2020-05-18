@@ -6,7 +6,10 @@
     groups: "docker"
 
 - name: Create `logs` folder
-  file: path={{ item.path }} state=directory owner={{ buildbot_main_user }}
+  file:
+    path: "{{ item.path }}"
+    state: directory
+    owner: "{{ buildbot_main_user }}"
   with_items:
   - { path: "{{ logs_folder }}" }
 
@@ -14,7 +17,10 @@
   command: chown -R {{ buildbot_main_user }}:{{ buildbot_main_user }} {{ logs_folder }}
 
 - name: Create needed directories
-  file: path={{ item.path }} state=directory owner={{ buildbot_main_user }}
+  file:
+    path: "{{ item.path }}"
+    state: directory
+    owner: "{{ buildbot_main_user }}"
   with_items:
   - { path: "{{ main_folder }}" }
   - { path: "{{ main_folder }}/volumes" }
@@ -24,8 +30,12 @@
   - { path: "{{ main_folder }}/volumes/patches/buildbot/secrets/providers" }
 
 - name: Upload needed files
-  copy: src={{ item.src }} dest={{ item.dest }}
-    owner=root group=root mode=0444
+  copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: root
+    group: root
+    mode: 0444
   with_items:
   - { src: "../files/.dockerignore",                                dest: "{{ main_folder }}/.dockerignore" }
   - { src: "../files/db.env",                                       dest: "{{ main_folder }}/db.env" }
@@ -35,14 +45,22 @@
   - { src: "../files/patches/buildbot/secrets/providers/vault.py",  dest: "{{ main_folder }}/volumes/patches/buildbot/secrets/providers/vault.py" }
 
 - name: Upload master extra files
-  copy: src="{{ item.path }}{{ item.file }}" dest="{{ main_folder }}/volumes/buildbot-master/{{ item.file }}"
-    owner=root group=root mode=0444
+  copy:
+    src: "{{ item.path }}{{ item.file }}"
+    dest: "{{ main_folder }}/volumes/buildbot-master/{{ item.file }}"
+    owner: root
+    group: root
+    mode: 0444
   with_items:
   - "{{ buildbot_master_extra_files }}"
 
 - name: Create 'docker-compose.yml' file from template
-  template: src={{ item.src }} dest={{ item.dest }}
-    owner=root group=root mode=0444
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: root
+    group: root
+    mode: 0444
   with_items:
   - { src: "../files/docker-compose.yml.jinja",             dest: "{{ main_folder }}/docker-compose.yml" }
 
@@ -53,7 +71,7 @@
     permanent: yes
     state: enabled
   with_items:
-  - { port: "{{ buildbot_port }}/tcp" }
+  - { port: "{{ buildbot_master_port }}/tcp" }
   - { port: "{{ buildbot_worker_port }}/tcp" }
 
 - name: Open http firewall port
@@ -84,9 +102,9 @@
     state: present
     build: yes
     services:
-    - buildbot
-    - db
-    - worker
+      - buildbot
+      - db
+      - worker
     restarted: true
 
 
