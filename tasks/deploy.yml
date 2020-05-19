@@ -39,12 +39,21 @@
   with_items:
     - { src: "../files/.dockerignore",                                dest: "{{ main_folder }}/.dockerignore" }
     - { src: "../files/db.env",                                       dest: "{{ main_folder }}/db.env" }
-    - { src: "{{ buildbot_master_cfg_file_path }}",                   dest: "{{ main_folder }}/volumes/buildbot-master/master.cfg" }
     - { src: "../files/slack.py",                                     dest: "{{ main_folder }}/volumes/buildbot-master/slack.py" }
     - { src: "../files/patches/buildbot/steps/source/p4.py",          dest: "{{ main_folder }}/volumes/patches/buildbot/steps/source/p4.py" }
     - { src: "../files/patches/buildbot/secrets/providers/vault.py",  dest: "{{ main_folder }}/volumes/patches/buildbot/secrets/providers/vault.py" }
 
-- name: Upload master extra files
+- name: Create master configuration file from template
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: root
+    group: root
+    mode: 0444
+  with_items:
+    - { src: "{{ buildbot_master_cfg_file_path }}", dest: "{{ main_folder }}/volumes/buildbot-master/master.cfg" }
+
+- name: Upload or render master extra files
   copy:
     src: "{{ item.path }}{{ item.file }}"
     dest: "{{ main_folder }}/volumes/buildbot-master/{{ item.file }}"

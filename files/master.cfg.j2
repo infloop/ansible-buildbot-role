@@ -37,6 +37,17 @@ if 'BUILDBOT_MQ_URL' in os.environ:
 # --master option)
 c['protocols'] = {'pb': {'port': os.environ.get("BUILDBOT_WORKER_PORT", 9989)}}
 
+####### SECRETS PROVIDERS
+
+c['secretsProviders'] = [
+  secrets.HashiCorpVaultSecretProvider(
+    vaultToken = "{{ buildbot_master_secrets_vault_token }}",
+    vaultServer = "{{ buildbot_master_secrets_vault_url }}",
+    secretsmount = "{{ buildbot_master_secrets_vault_mount }}",
+    apiVersion = 1
+  )
+]
+
 ####### CHANGESOURCES
 
 # the 'change_source' setting tells the buildmaster how it should find out
@@ -61,6 +72,16 @@ factory = util.BuildFactory()
 
 c['builders'] = []
 
+####### SERVICES
+
+c['services'] = []
+c['services'].append(
+  slack.SlackStatusPush(
+    endpoint = "{{ buildbot_master_slack_url }}",
+    channel = "{{ buildbot_master_slack_channel }}",
+  )
+)
+
 ####### STATUS TARGETS
 
 # 'status' is a list of Status Targets. The results of each build will be
@@ -74,8 +95,8 @@ c['status'] = []
 # the 'title' string will appear at the top of this buildbot installation's
 # home pages (linked to the 'titleURL').
 
-c['title'] = "Build bot"
-c['titleURL'] = "http://localhost:8010"
+c['title'] = "{{ buildbot_web_ui_title }}"
+c['titleURL'] = "{{ buildbot_web_url }}"
 
 # the 'buildbotURL' string should point to the location where the buildbot's
 # internal web server is visible. This typically uses the port number set in
@@ -85,8 +106,43 @@ c['titleURL'] = "http://localhost:8010"
 c['buildbotURL'] = os.environ.get("BUILDBOT_WEB_URL", "http://localhost:8010/")
 
 # minimalistic config to activate new web UI
-c['www'] = dict(port=os.environ.get("BUILDBOT_WEB_PORT", 8010),
-                plugins=dict(waterfall_view={}, console_view={}))
+c['www'] = dict(
+  port = os.environ.get("BUILDBOT_WEB_PORT", 8010),
+  plugins = dict(waterfall_view = {}, console_view = {}),
+  change_hook_dialects = {
+    'base' : True
+  },
+)
+
+####### Auth
+
+c['www']['authz'] = util.Authz(
+  allowRules = [
+    util.AnyEndpointMatcher(role="admins", defaultDeny=False),
+
+    util.StopBuildEndpointMatcher(role="users"),
+    util.RebuildBuildEndpointMatcher(role="users"),
+    util.ForceBuildEndpointMatcher(role="users"),
+    util.StopBuildEndpointMatcher(role="users"),
+
+    util.EnableSchedulerEndpointMatcher(role="admins"),
+    util.AnyControlEndpointMatcher(role="admins")
+  ],
+  roleMatchers = [
+    util.RolesFromUsername(roles=['admins'], usernames=[
+      'admin',
+    ]),
+    util.RolesFromUsername(roles=['users'], usernames=[
+      'user',
+    ]),
+    # role owner is granted when property owner matches the email of the user
+    util.RolesFromOwner(role="owner")
+  ]
+)
+c['www']['auth'] = util.UserPasswordAuth({
+  'admin': '123456',
+  'user': '123456',
+})
 
 ####### DB URL
 

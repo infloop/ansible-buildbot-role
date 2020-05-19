@@ -1,6 +1,6 @@
 ---
-- name: Upload needed files
-  copy:
+- name: Upload master configuration file from template
+  template:
     src: {{ item.src }}
     dest: {{ item.dest }}
     owner: root
@@ -9,7 +9,7 @@
   with_items:
     - { src: "{{ buildbot_master_cfg_file_path }}", dest: "{{ main_folder }}/./volumes/buildbot-master/master.cfg" }
 
-- name: Upload master extra files
+- name: Upload or render master extra files
   copy:
     src: "{{ item.path }}{{ item.file }}"
     dest: "{{ main_folder }}/volumes/buildbot-master/{{ item.file }}"
