@@ -169,7 +169,6 @@ c['www']['authz'] = util.Authz(
 c['www']['auth'] = util.UserPasswordAuth({
   {% for user in buildbot_master_users %}
   '{{ user.login }}': '{{ user.password }}',
-  '{{ user.login }}': '{{ user.password }}',
   {% endfor %}
 })
 
