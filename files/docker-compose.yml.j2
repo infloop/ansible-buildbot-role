@@ -25,7 +25,7 @@ services:
       - {{ buildbot_docker_network_name }}
     ports:
       - "0.0.0.0:{{ buildbot_master_port }}:8010"
-      - "0.0.0.0:{{ buildbot_worker_port }}:9989"
+    #  - "0.0.0.0:{{ buildbot_worker_port }}:9989"
 
   db:
     image: "postgres:9.4"
