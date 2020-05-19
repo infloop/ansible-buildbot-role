@@ -71,7 +71,7 @@
     group: root
     mode: 0444
   with_items:
-    - { src: "../files/docker-compose.yml.j2", dest: "{{ main_folder }}/docker-compose.yml" }
+    - { src: "../files/docker-compose.j2.yml", dest: "{{ main_folder }}/docker-compose.yml" }
 
 - name: Open buildbot firewall port
   firewalld:
