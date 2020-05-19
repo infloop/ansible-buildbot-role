@@ -80,8 +80,8 @@
     permanent: yes
     state: enabled
   with_items:
-    - { port: "{{ buildbot_master_port }}/tcp" }
-    - { port: "{{ buildbot_worker_port }}/tcp" }
+    - { port: "{{ buildbot_master_exposed_port }}/tcp" }
+    - { port: "{{ buildbot_worker_exposed_port }}/tcp" }
 
 - name: Open http firewall port
   firewalld:

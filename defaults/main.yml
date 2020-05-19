@@ -8,7 +8,9 @@ buildbot_docker_network_name: "buildbot_docker_network"
 buildbot_docker_subnet: "112.160.1.0/28"
 buildbot_docker_restart_policy: "always"
 
-buildbot_worker_port: "9989"
+buildbot_worker_expose: no
+buildbot_worker_exposed_port: "9989"
+buildbot_worker_internal_port: "9989"
 buildbot_worker_name: "local_worker"
 buildbot_worker_password: "pass"
 
@@ -16,9 +18,11 @@ buildbot_workers:
   - { name: "local_worker", password: "pass" }
 
 buildbot_web_ui_title: "Buildbot"
-buildbot_web_url: "http://buildbot.local:{{ buildbot_master_port }}/"
+buildbot_web_url: "http://buildbot.local:{{ buildbot_master_exposed_port }}/"
 
-buildbot_master_port: "8081"
+buildbot_master_expose: yes
+buildbot_master_exposed_port: "8081"
+buildbot_master_internal_port: "8010"
 buildbot_master_users:
   - { login: "admin", password: "123456", role: "admins" }
   - { login: "user", password: "123456", role: "users" }

@@ -9,9 +9,9 @@ services:
       - db.env
     environment:
       - BUILDBOT_CONFIG_DIR=config
-      - BUILDBOT_WORKER_PORT=9989
+      - BUILDBOT_WORKER_PORT={{ buildbot_worker_internal_port }}
       - BUILDBOT_WEB_URL={{ buildbot_web_url }}
-      - BUILDBOT_WEB_PORT=tcp:port=8010
+      - BUILDBOT_WEB_PORT=tcp:port={{ buildbot_master_internal_port }}
     volumes:
       - ./volumes/buildbot-master/:/var/lib/buildbot
       - ./volumes/patches/buildbot/steps/source/p4.py:/usr/lib/python3.6/site-packages/buildbot/steps/source/p4.py:ro
@@ -24,8 +24,12 @@ services:
     networks:
       - {{ buildbot_docker_network_name }}
     ports:
-      - "0.0.0.0:{{ buildbot_master_port }}:8010"
-    #  - "0.0.0.0:{{ buildbot_worker_port }}:9989"
+{% if buildbot_master_expose | default(false) | bool == true %}
+      - "0.0.0.0:{{ buildbot_master_exposed_port }}:{{ buildbot_master_internal_port }}"
+{% endif %}
+{% if buildbot_worker_expose | default(false) | bool == true %}
+      - "0.0.0.0:{{ buildbot_worker_exposed_port }}:{{ buildbot_worker_internal_port }}"
+{% endif %}
 
   db:
     image: "postgres:9.4"
@@ -48,7 +52,7 @@ services:
       - /etc/localtime:/etc/localtime:ro
     environment:
       BUILDMASTER: buildbot
-      BUILDMASTER_PORT: 9989
+      BUILDMASTER_PORT: {{ buildbot_worker_internal_port }}
       WORKERNAME: {{ buildbot_worker_name }}
       WORKERPASS: {{ buildbot_worker_password }}
       WORKER_ENVIRONMENT_BLACKLIST: DOCKER_BUILDBOT* BUILDBOT_ENV_* BUILDBOT_1* WORKER_ENVIRONMENT_BLACKLIST
