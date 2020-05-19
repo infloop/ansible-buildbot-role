@@ -37,5 +37,5 @@ buildbot_master_secrets_vault_url: ""
 buildbot_master_secrets_vault_mount: ""
 buildbot_master_secrets_vault_api_version: 1
 
-buildbot_master_cfg_file_path: "../files/master.cfg.j2"
+buildbot_master_cfg_file_path: "../files/master.cfg.j2.py"
 buildbot_master_extra_files: []
