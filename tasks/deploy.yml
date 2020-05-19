@@ -11,7 +11,7 @@
     state: directory
     owner: "{{ buildbot_main_user }}"
   with_items:
-  - { path: "{{ logs_folder }}" }
+    - { path: "{{ logs_folder }}" }
 
 - name: Change owner for `logs` folder
   command: chown -R {{ buildbot_main_user }}:{{ buildbot_main_user }} {{ logs_folder }}
@@ -22,12 +22,12 @@
     state: directory
     owner: "{{ buildbot_main_user }}"
   with_items:
-  - { path: "{{ main_folder }}" }
-  - { path: "{{ main_folder }}/volumes" }
-  - { path: "{{ main_folder }}/volumes/buildbot-master" }
-  - { path: "{{ main_folder }}/volumes/buildbot-worker" }
-  - { path: "{{ main_folder }}/volumes/patches/buildbot/steps/source" }
-  - { path: "{{ main_folder }}/volumes/patches/buildbot/secrets/providers" }
+    - { path: "{{ main_folder }}" }
+    - { path: "{{ main_folder }}/volumes" }
+    - { path: "{{ main_folder }}/volumes/buildbot-master" }
+    - { path: "{{ main_folder }}/volumes/buildbot-worker" }
+    - { path: "{{ main_folder }}/volumes/patches/buildbot/steps/source" }
+    - { path: "{{ main_folder }}/volumes/patches/buildbot/secrets/providers" }
 
 - name: Upload needed files
   copy:
@@ -37,12 +37,12 @@
     group: root
     mode: 0444
   with_items:
-  - { src: "../files/.dockerignore",                                dest: "{{ main_folder }}/.dockerignore" }
-  - { src: "../files/db.env",                                       dest: "{{ main_folder }}/db.env" }
-  - { src: "{{ buildbot_master_cfg_file_path }}",                   dest: "{{ main_folder }}/volumes/buildbot-master/master.cfg" }
-  - { src: "../files/slack.py",                                     dest: "{{ main_folder }}/volumes/buildbot-master/slack.py" }
-  - { src: "../files/patches/buildbot/steps/source/p4.py",          dest: "{{ main_folder }}/volumes/patches/buildbot/steps/source/p4.py" }
-  - { src: "../files/patches/buildbot/secrets/providers/vault.py",  dest: "{{ main_folder }}/volumes/patches/buildbot/secrets/providers/vault.py" }
+    - { src: "../files/.dockerignore",                                dest: "{{ main_folder }}/.dockerignore" }
+    - { src: "../files/db.env",                                       dest: "{{ main_folder }}/db.env" }
+    - { src: "{{ buildbot_master_cfg_file_path }}",                   dest: "{{ main_folder }}/volumes/buildbot-master/master.cfg" }
+    - { src: "../files/slack.py",                                     dest: "{{ main_folder }}/volumes/buildbot-master/slack.py" }
+    - { src: "../files/patches/buildbot/steps/source/p4.py",          dest: "{{ main_folder }}/volumes/patches/buildbot/steps/source/p4.py" }
+    - { src: "../files/patches/buildbot/secrets/providers/vault.py",  dest: "{{ main_folder }}/volumes/patches/buildbot/secrets/providers/vault.py" }
 
 - name: Upload master extra files
   copy:
@@ -52,7 +52,7 @@
     group: root
     mode: 0444
   with_items:
-  - "{{ buildbot_master_extra_files }}"
+    - "{{ buildbot_master_extra_files }}"
 
 - name: Create 'docker-compose.yml' file from template
   template:
@@ -62,7 +62,7 @@
     group: root
     mode: 0444
   with_items:
-  - { src: "../files/docker-compose.yml.jinja",             dest: "{{ main_folder }}/docker-compose.yml" }
+    - { src: "../files/docker-compose.yml.jinja", dest: "{{ main_folder }}/docker-compose.yml" }
 
 - name: Open buildbot firewall port
   firewalld:
@@ -71,8 +71,8 @@
     permanent: yes
     state: enabled
   with_items:
-  - { port: "{{ buildbot_master_port }}/tcp" }
-  - { port: "{{ buildbot_worker_port }}/tcp" }
+    - { port: "{{ buildbot_master_port }}/tcp" }
+    - { port: "{{ buildbot_worker_port }}/tcp" }
 
 - name: Open http firewall port
   firewalld:
@@ -82,8 +82,8 @@
     permanent: '{{ item.permanent }}'
     state: enabled
   with_items:
-  - { service: 'http', zone: 'public', permanent: 'yes'  }
-  - { service: 'https', zone: 'public', permanent: 'yes'  }
+    - { service: 'http', zone: 'public', permanent: 'yes'  }
+    - { service: 'https', zone: 'public', permanent: 'yes'  }
 
 - name: Set httpd_can_network_connect flag on and keep it persistent across reboots
   seboolean:

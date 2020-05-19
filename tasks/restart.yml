@@ -4,8 +4,8 @@
     state: present
     build: yes
     services:
-    - buildbot
-    - worker
+      - buildbot
+      - worker
     restarted: true
 
 
