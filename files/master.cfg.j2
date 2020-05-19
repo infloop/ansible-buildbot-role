@@ -2,8 +2,23 @@
 # ex: set filetype=python:
 
 import os
+import re
+import json
+
+import slack
 
 from buildbot.plugins import *
+from buildbot.plugins import webhooks
+
+cached_twlog = None
+def getTwlog():
+  global cached_twlog
+  if cached_twlog:
+    return cached_twlog
+  else:
+    from twisted.python import log as twlog
+    cached_twlog = twlog
+    return cached_twlog
 
 # This is a sample buildmaster config file. It must be installed as
 # 'master.cfg' in your buildmaster's base directory.
@@ -18,7 +33,10 @@ c = BuildmasterConfig = {}
 # a Worker object, specifying a unique worker name and password.  The same
 # worker name and password must be configured on the worker.
 
-c['workers'] = [worker.Worker("local_worker", 'pass')]
+c['workers'] = []
+{% for worker in buildbot_workers %}
+c['workers'].append(worker.Worker('{{ worker.name }}', '{{ worker.password }}'))
+{% endfor %}
 
 if 'BUILDBOT_MQ_URL' in os.environ:
     c['mq'] = {
@@ -39,14 +57,17 @@ c['protocols'] = {'pb': {'port': os.environ.get("BUILDBOT_WORKER_PORT", 9989)}}
 
 ####### SECRETS PROVIDERS
 
-c['secretsProviders'] = [
+c['secretsProviders'] = []
+{% if (buildbot_master_secrets_vault is defined) and (buildbot_master_secrets_vault == "present") %}
+c['secretsProviders'].append(
   secrets.HashiCorpVaultSecretProvider(
     vaultToken = "{{ buildbot_master_secrets_vault_token }}",
     vaultServer = "{{ buildbot_master_secrets_vault_url }}",
     secretsmount = "{{ buildbot_master_secrets_vault_mount }}",
-    apiVersion = 1
+    apiVersion = {{ buildbot_master_secrets_vault_api_version }}
   )
-]
+)
+{% endif %}
 
 ####### CHANGESOURCES
 
@@ -75,12 +96,14 @@ c['builders'] = []
 ####### SERVICES
 
 c['services'] = []
+{% if (buildbot_master_slack is defined) and (buildbot_master_slack == "present") %}
 c['services'].append(
   slack.SlackStatusPush(
     endpoint = "{{ buildbot_master_slack_url }}",
     channel = "{{ buildbot_master_slack_channel }}",
   )
 )
+{% endif %}
 
 ####### STATUS TARGETS
 
@@ -130,18 +153,24 @@ c['www']['authz'] = util.Authz(
   ],
   roleMatchers = [
     util.RolesFromUsername(roles=['admins'], usernames=[
-      'admin',
+      {% for user in (buildbot_master_users | selectattr("role", "equalto", "admins") | list) %}
+      '{{ user.login }}',
+      {% endfor %}
     ]),
     util.RolesFromUsername(roles=['users'], usernames=[
-      'user',
+      {% for user in (buildbot_master_users | selectattr("role", "equalto", "users") | list) %}
+      '{{ user.login }}',
+      {% endfor %}
     ]),
     # role owner is granted when property owner matches the email of the user
     util.RolesFromOwner(role="owner")
   ]
 )
 c['www']['auth'] = util.UserPasswordAuth({
-  'admin': '123456',
-  'user': '123456',
+  {% for user in buildbot_master_users %}
+  '{{ user.login }}': '{{ user.password }}',
+  '{{ user.login }}': '{{ user.password }}',
+  {% endfor %}
 })
 
 ####### DB URL

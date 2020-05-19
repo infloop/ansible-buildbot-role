@@ -12,13 +12,16 @@ buildbot_worker_port: "9989"
 buildbot_worker_name: "local_worker"
 buildbot_worker_password: "pass"
 
+buildbot_workers:
+  - { name: "local_worker", password: "pass" }
+
 buildbot_web_ui_title: "Buildbot"
 buildbot_web_url: "http://buildbot.local:{{ buildbot_master_port }}/"
 
 buildbot_master_port: "8081"
 buildbot_master_users:
-  - { name: "admin", password: "123456", role: "admins" }
-  - { name: "user", password: "123456", role: "users" }
+  - { login: "admin", password: "123456", role: "admins" }
+  - { login: "user", password: "123456", role: "users" }
 
 buildbot_master_slack: present
 buildbot_master_slack_url: ""
@@ -28,6 +31,7 @@ buildbot_master_secrets_vault: present
 buildbot_master_secrets_vault_token: ""
 buildbot_master_secrets_vault_url: ""
 buildbot_master_secrets_vault_mount: ""
+buildbot_master_secrets_vault_api_version: 1
 
 buildbot_master_cfg_file_path: "../files/master.cfg.j2"
 buildbot_master_extra_files: []
