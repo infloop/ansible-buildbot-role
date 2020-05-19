@@ -1,19 +1,32 @@
 ---
 - name: Upload needed files
-  copy: src={{ item.src }} dest={{ item.dest }}
-    owner=root group=root mode=0444
+  copy:
+    src: {{ item.src }}
+    dest: {{ item.dest }}
+    owner: root
+    group: root
+    mode: 0444
   with_items:
-  - { src: "{{ buildbot_master_cfg_file_path }}",         dest: "{{ main_folder }}/./volumes/buildbot-master/master.cfg" }
+    - { src: "{{ buildbot_master_cfg_file_path }}", dest: "{{ main_folder }}/./volumes/buildbot-master/master.cfg" }
 
 - name: Upload master extra files
-  copy: src="{{ item.path }}{{ item.file }}" dest="{{ main_folder }}/volumes/buildbot-master/{{ item.file }}"
-    owner=root group=root mode=0444
+  copy:
+    src: "{{ item.path }}{{ item.file }}"
+    dest: "{{ main_folder }}/volumes/buildbot-master/{{ item.file }}"
+    owner: root
+    group: root
+    mode: 0444
   with_items:
-  - "{{ buildbot_master_extra_files }}"
+    - "{{ buildbot_master_extra_files }}"
 
 - name: Apply new Buildbot config
-  shell: 'docker-compose exec buildbot /bin/sh -c "buildbot reconfig ."'
-  args:
-    chdir:  '{{ main_folder }}'
+- docker_compose:
+    project_src: "{{ main_folder }}"
+    state: present
+    build: yes
+    services:
+      - buildbot
+      - worker
+    restarted: true
 
 

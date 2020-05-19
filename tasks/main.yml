@@ -2,7 +2,7 @@
   when: buildbot_role_mode == 'deployment'
 
 - include_tasks: reconfigure.yml
-  when: buildbot_role_mode == 'reconfiguration'
+  when: buildbot_role_mode == 'reconfigure'
 
 - include_tasks: restart.yml
   when: buildbot_role_mode == 'restart'

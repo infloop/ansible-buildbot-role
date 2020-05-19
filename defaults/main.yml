@@ -1,5 +1,5 @@
 ---
-buildbot_role_mode: "deployment" # "reconfiguration"
+buildbot_role_mode: "deployment" # "reconfigure" | "restart"
 buildbot_organization: "buildbot"
 buildbot_main_user: "buildbot"
 buildbot_app_name: "buildbot"
@@ -10,6 +10,6 @@ buildbot_master_port: "8081"
 buildbot_worker_port: "9989"
 buildbot_worker_name: "local_worker"
 buildbot_worker_password: "pass"
-buildbot_web_url: "http://buildbot.local:{{ buildbot_port }}/"
+buildbot_web_url: "http://buildbot.local:{{ buildbot_master_port }}/"
 buildbot_master_cfg_file_path: "../files/master.cfg"
 buildbot_master_extra_files: []
